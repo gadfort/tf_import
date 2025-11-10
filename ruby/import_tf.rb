@@ -322,7 +322,10 @@ module TechfileToKLayout
               if td.length >= 3
                 lp = td[0]
                 tl = (layers[lp] ||= TechFileLayer.new(lp))
-                tl.ld = [ td[1], td[2] ]
+                if tl.ld == nil
+                  tl.ld = Array.new
+                end
+                tl.ld << [ td[1], td[2] ]
                 has_layers = true
               end
             end
@@ -360,7 +363,10 @@ module TechfileToKLayout
             if ll.size >= 3
               lp = [ ll[0], ll[1] ]
               tl = (layers[lp] ||= TechFileLayer.new(lp))
-              tl.ld = [ ll[2].to_i, (ll[3] || "0").to_i ]
+              if tl.ld == nil
+                tl.ld = Array.new
+              end
+              tl.ld << [ ll[2].to_i, (ll[3] || "0").to_i ]
             end
           end
         end
@@ -372,20 +378,22 @@ module TechfileToKLayout
 
       ldef = layers[lp]
       if ldef && ldef.ld && ldef.display
-        lprops = RBA::LayerPropertiesNode.new
-        lprops.source_layer = ldef.ld[0]
-        lprops.source_datatype = ldef.ld[1]
-        lprops.source_cellview = 0
-        lprops.name = lp[0] + "." + lp[1] + " - " + ldef.ld[0].to_s + "/" + ldef.ld[1].to_s
-        lprops.width = ldef.display.width
-        lprops.frame_color = ldef.display.frame_color
-        lprops.fill_color = ldef.display.fill_color
-        lprops.visible = ldef.visible
-        lprops.valid = ldef.valid
-        lprops.xfill = ldef.display.xfill
-        lprops.dither_pattern = ldef.display.stipple || 1
-        lprops.line_style = ldef.display.line_style || 0
-        lv.insert_layer(lv.end_layers, lprops)
+        ldef.ld.each do |ld|
+          lprops = RBA::LayerPropertiesNode.new
+          lprops.source_layer = ld[0]
+          lprops.source_datatype = ld[1]
+          lprops.source_cellview = 0
+          lprops.name = lp[0] + "." + lp[1] + " - " + ld[0].to_s + "/" + ld[1].to_s
+          lprops.width = ldef.display.width
+          lprops.frame_color = ldef.display.frame_color
+          lprops.fill_color = ldef.display.fill_color
+          lprops.visible = ldef.visible
+          lprops.valid = ldef.valid
+          lprops.xfill = ldef.display.xfill
+          lprops.dither_pattern = ldef.display.stipple || 1
+          lprops.line_style = ldef.display.line_style || 0
+          lv.insert_layer(lv.end_layers, lprops)
+        end
       end
 
     end
